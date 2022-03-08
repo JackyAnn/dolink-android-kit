@@ -1,0 +1,63 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId findProperty('publish_groupid')
+                artifactId findProperty('publish_name')
+                version findProperty('publish_version')
+                if (getComponents().findByName('java')) {
+                    from components.java
+                } else if (getComponents().findByName('release')) {
+                    from components.release
+                }
+
+                pom {
+                    url = findProperty('publish_address')
+                    name = findProperty('publish_name')
+                    description = findProperty('publish_description')
+                    licenses {
+                        license {
+                            name = findProperty('publish_license_name')
+                            url = findProperty('publish_address') + findProperty('publish_license_url')
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = findProperty('publish_developer_id')
+                            name = findProperty('publish_developer_name')
+                            email = findProperty('publish_developer_email')
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:' + findProperty('publish_address') + '.git'
+                        developerConnection = findProperty('publish_address') + '/issues'
+                        url = findProperty('publish_address')
+                    }
+                }
+            }
+
+
+        }
+
+
+        repositories {
+            maven {
+                //snapshot versoin must be end with -SNAPSHOT
+                url = findProperty('publish_version').toString().endsWith('-SNAPSHOT') ? findProperty('publish_maven_url_snapshots') : findProperty('publish_maven_url_deploy')
+                credentials {
+                    username = findProperty('credencial.username')
+                    password = findProperty('credencial.password')
+                }
+            }
+        }
+
+        signing {
+            sign publishing.publications.release
+        }
+    }
+}
+
+

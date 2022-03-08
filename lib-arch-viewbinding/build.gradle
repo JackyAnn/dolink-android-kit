@@ -1,0 +1,53 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+    id 'signing'
+}
+ext {
+    publish_name = 'arch-viewbinding'
+    publish_description = 'android viewbinding kit'
+}
+apply from: '../publish.gradle'
+android {
+    compileSdk 31
+    namespace 'ltd.dolink.arch.viewbinding'
+    defaultConfig {
+        minSdk 21
+        targetSdk 31
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    buildFeatures {
+        buildConfig false
+        viewBinding true
+    }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    api project(path: ':lib-arch-reflect')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
+    api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    api project(path: ':lib-arch-initializer')
+    api 'androidx.lifecycle:lifecycle-common:latest.release'
+    testImplementation 'junit:junit:latest.release'
+    androidTestImplementation 'androidx.test.ext:junit:latest.release'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'
+}
