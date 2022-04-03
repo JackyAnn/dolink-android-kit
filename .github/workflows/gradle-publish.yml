@@ -32,13 +32,11 @@ jobs:
         with:
           arguments: publish
         env:
-          ORG_GRADLE_PROJECT_mavenUserName: ${{ secrets.MAVEN_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-          mavenUserName: ${{ secrets.MAVEN_USERNAME }}
-          mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
-          signingKey: ${{ secrets.SIGNING_KEY }}
-          signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
-          signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenUserName: ${{ secrets.MAVEN_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
+          ORG_GRADLE_PROJECT_githubActor: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubToken: ${{ secrets.GITHUB_TOKEN }}
+

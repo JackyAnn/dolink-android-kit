@@ -54,11 +54,20 @@ afterEvaluate {
 
         repositories {
             maven {
-                //snapshot versoin must be end with -SNAPSHOT
+                name = "maven"
                 url = findProperty('publish_version').toString().endsWith('-SNAPSHOT') ? findProperty('publish_maven_url_snapshots') : findProperty('publish_maven_url_deploy')
                 credentials {
                     username = lookupProperty('mavenUserName')
                     password = lookupProperty('mavenPassword')
+                }
+            }
+
+            maven {
+                name = "github"
+                url = uri("https://maven.pkg.github.com/JackyAnn/dolink-android-kit")
+                credentials {
+                    username = lookupProperty('githubActor')
+                    password = lookupProperty('githubToken')
                 }
             }
         }
@@ -66,7 +75,7 @@ afterEvaluate {
         signing {
 
             def signingKeyId = lookupProperty('signingKeyId')
-            def signingKey = lookupProperty('signingKey')
+            def signingKey = new String(Base64.getDecoder().decode(lookupProperty('signingKey')))
             def signingPassword = lookupProperty('signingPassword')
             useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.release
