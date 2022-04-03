@@ -1,6 +1,9 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
+
+System.out.println(System.getenv('signingKeyId') + "::::" + signingKeyId)
+getLogger().lifecycle(System.getenv('signingKeyId') + "::" + signingKeyId)
 afterEvaluate {
     publishing {
         publications {
@@ -48,13 +51,19 @@ afterEvaluate {
                 //snapshot versoin must be end with -SNAPSHOT
                 url = findProperty('publish_version').toString().endsWith('-SNAPSHOT') ? findProperty('publish_maven_url_snapshots') : findProperty('publish_maven_url_deploy')
                 credentials {
-                    username = findProperty('credencial.username')
-                    password = findProperty('credencial.password')
+                    def mavenUsername = getProperties().getOrDefault('mavenUserName', System.getenv('mavenUserName'))
+                    def mavenPassword = getProperties().getOrDefault('mavenPassword', System.getenv('mavenPassword'))
+                    username = mavenUsername
+                    password = mavenPassword
                 }
             }
         }
 
         signing {
+            def signingKeyId = getProperties().getOrDefault('signingKeyId', System.getenv('signingKeyId'))
+            def signingKey = getProperties().getOrDefault('signingKey', System.getenv('signingKey'))
+            def signingPassword = getProperties().getOrDefault('signingPassword', System.getenv('signingPassword'))
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.release
         }
     }
