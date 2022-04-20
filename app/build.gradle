@@ -41,7 +41,6 @@ dependencies {
     implementation project(path: ':lib-arch-app-initializer')
     implementation project(path: ':lib-arch-initializer')
     implementation project(path: ':lib-arch-liveevent')
-    implementation project(path: ':lib-arch-livedata')
     implementation project(path: ':lib-arch-rxjava3')
     implementation project(path: ':lib-arch-treenode')
     implementation project(path: ':lib-arch-viewbinding')

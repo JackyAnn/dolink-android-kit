@@ -43,7 +43,6 @@ android {
 
 dependencies {
     api project(path: ':lib-arch')
-    api project(path: ':lib-arch-viewbinding')
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.recyclerview:recyclerview:latest.release"

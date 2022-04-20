@@ -1,29 +1,27 @@
 package ltd.dolink.arch.app;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Lifecycle.Event;
 import androidx.lifecycle.LifecycleEventObserver;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ltd.dolink.arch.Effect;
-import ltd.dolink.arch.Intent;
 import ltd.dolink.arch.View;
 import ltd.dolink.arch.adapter.CellAdapter;
 import ltd.dolink.arch.adapter.CellBinder;
 import ltd.dolink.arch.adapter.CellBinder.ListCellBinder;
 import ltd.dolink.arch.adapter.CellState;
 import ltd.dolink.arch.adapter.CellViewHolder;
+import ltd.dolink.arch.adapter.CellViewHolder.Factory;
 import ltd.dolink.arch.app.databinding.ActivityMainBinding;
-import ltd.dolink.arch.app.databinding.ItemView0Binding;
-import ltd.dolink.arch.initializer.ApplicationOwner;
-import ltd.dolink.arch.livedata.LiveViewModel;
+import ltd.dolink.arch.app.databinding.ItemViewBinding;
 import ltd.dolink.arch.viewbinding.ViewBindingFactory;
 
 
@@ -38,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements View<LifecycleSta
         }
     };
 
-    private LifecycleViewModel viewModel;
 
     @Override
     public void setState(@NonNull LifecycleState state) {
@@ -55,40 +52,35 @@ public class MainActivity extends AppCompatActivity implements View<LifecycleSta
         setContentView(viewBinding.getRoot());
         viewBinding.list.setLayoutManager(new LinearLayoutManager(this));
         viewBinding.list.setAdapter(cellAdapter);
-        cellAdapter.getCellBinder().link(0x0, LifecycleState.class, ItemView0Binding.class, LifecycleViewHolder.class);
+        cellAdapter.getCellBinder().link(0x0, new Factory<LifecycleState, ItemViewBinding, ItemViewHolder>() {
+            @Override
+            public ItemViewBinding createViewBinding(@NonNull ViewGroup parent) {
+                return ItemViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            }
 
-        viewModel = ApplicationOwner.getInstance().of(this).get(LifecycleViewModel.class);
-        setViewModel(viewModel);
-        getLifecycleOwner().getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
-            viewModel.handleIntent(new ShowLifeCycleEventIntent(event));
+            @Override
+            public ItemViewHolder createCellViewHolder(@NonNull ItemViewBinding viewBinding) {
+                return new ItemViewHolder(viewBinding);
+            }
+        });
+
+
+        getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
+            setState(new LifecycleState(event));
         });
 
 
     }
 
 
-    @NonNull
-    @Override
-    public LifecycleOwner getLifecycleOwner() {
-        return this;
-    }
+    static class ItemViewHolder extends CellViewHolder<LifecycleState, ItemViewBinding> {
 
-    public static class LifecycleViewModel extends LiveViewModel<LifecycleState> {
-
-
-        public void handleIntent(@NonNull ShowLifeCycleEventIntent intent) {
-            setState(new LifecycleState(intent.getEvent()));
-        }
-    }
-
-    static class LifecycleViewHolder extends CellViewHolder<LifecycleState, ItemView0Binding> {
-
-        public LifecycleViewHolder(@NonNull ItemView0Binding viewBinding) {
+        public ItemViewHolder(@NonNull ItemViewBinding viewBinding) {
             super(viewBinding);
         }
 
         @Override
-        public void setState(@NonNull LifecycleState state, List<Object> payloads) {
+        public void setState(@NonNull LifecycleState state) {
             getViewBinding().text.setText(state.toString());
         }
     }
@@ -119,67 +111,8 @@ class LifecycleState implements CellState {
 }
 
 
-class LifecycleEffect implements Effect {
-    @NonNull
-    private final Event event;
-
-    LifecycleEffect(@NonNull Event event) {
-        this.event = event;
-    }
-
-    @NonNull
-    public Event getEvent() {
-        return event;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("LifecycleEffect{");
-        sb.append("event=").append(event);
-        sb.append('}');
-        return sb.toString();
-    }
-}
-
-class ShowLifeCycleEventIntent implements Intent {
-    @NonNull
-    private final Event event;
-
-    ShowLifeCycleEventIntent(@NonNull Event event) {
-        this.event = event;
-    }
-
-    @NonNull
-    public Event getEvent() {
-        return event;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ShowLifeCycleEventIntent{");
-        sb.append("event=").append(event);
-        sb.append('}');
-        return sb.toString();
-    }
-}
-
-class ClientEventIntent implements Intent {
-    @NonNull
-    private final long time;
-
-    public ClientEventIntent() {
-        this.time = System.currentTimeMillis();
-    }
 
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ClientEventIntent{");
-        sb.append("time=").append(time);
-        sb.append('}');
-        return sb.toString();
-    }
-}
 
 
 

@@ -76,7 +76,7 @@ public abstract class CellAdapter extends Adapter<CellViewHolder<CellState, View
 
     @Override
     public void onBindViewHolder(@NonNull CellViewHolder<CellState, ViewBinding> holder, int position, @NonNull List<Object> payloads) {
-        holder.setState(getItem(position), payloads);
+        holder.setState(getItem(position));
     }
 
 }

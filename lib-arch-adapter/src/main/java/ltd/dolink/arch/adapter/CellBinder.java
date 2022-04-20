@@ -1,7 +1,6 @@
 package ltd.dolink.arch.adapter;
 
 
-import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -12,12 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import ltd.dolink.arch.adapter.CellViewHolder.DefaultFactory;
 import ltd.dolink.arch.adapter.CellViewHolder.Factory;
-import ltd.dolink.arch.viewbinding.ViewBindingFactory;
 
 public abstract class CellBinder {
-    private final Map<Integer, ViewHolderFactoryBoundViewBinding> viewHolderFactoryMap = new HashMap<>();
+    private final Map<Integer, Factory> viewHolderFactoryMap = new HashMap<>();
 
 
     public CellBinder() {
@@ -28,27 +25,18 @@ public abstract class CellBinder {
     public abstract int getItemCount();
 
 
-    public <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> void link(int cellType, @NonNull Class<STATE> stateClass, @NonNull Class<VB> viewBindingClass, @NonNull Class<VH> viewHolderClass) {
-        link(cellType, stateClass, ViewBindingFactory.of(viewBindingClass), new DefaultFactory<>(viewHolderClass));
+    public <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> void link(int cellType, @NonNull Factory<STATE, VB, VH> factory) {
+        Objects.requireNonNull(factory);
+        viewHolderFactoryMap.put(cellType, factory);
     }
 
-    public <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> void link(int cellType, @NonNull Class<STATE> stateClass, @NonNull ViewBindingFactory<VB> viewBindingFactory, @NonNull Class<VH> viewHolderClass) {
-        link(cellType, stateClass, viewBindingFactory, new DefaultFactory<>(viewHolderClass));
-    }
-
-    public <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> void link(int cellType, @NonNull Class<STATE> stateClass, @NonNull Class<VB> viewBindingClass, @NonNull Factory<STATE, VB, VH> viewHolderFactory) {
-        link(cellType, stateClass, ViewBindingFactory.of(viewBindingClass), viewHolderFactory);
-    }
-
-    public <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> void link(int cellType, @NonNull Class<STATE> stateClass, @NonNull ViewBindingFactory<VB> viewBindingFactory, @NonNull Factory<STATE, VB, VH> viewHolderFactory) {
-        viewHolderFactoryMap.put(cellType, new ViewHolderFactoryBoundViewBinding<>(stateClass, viewBindingFactory, viewHolderFactory));
-    }
 
     protected <STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> VH createViewHolder(@NonNull ViewGroup parent, int cellType) {
-        @SuppressWarnings("unchecked") ViewHolderFactoryBoundViewBinding<STATE, VB, VH> viewHolderFactory = viewHolderFactoryMap.get(cellType);
+        @SuppressWarnings("unchecked") Factory<STATE, VB, VH> viewHolderFactory = viewHolderFactoryMap.get(cellType);
         Objects.requireNonNull(viewHolderFactory);
-        VB viewBinding = viewHolderFactory.viewBindingFactory.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        return viewHolderFactory.create(viewBinding);
+        VB viewBinding = viewHolderFactory.createViewBinding(parent);
+        Objects.requireNonNull(viewBinding);
+        return viewHolderFactory.createCellViewHolder(viewBinding);
     }
 
     public static class ListCellBinder<STATE extends CellState> extends CellBinder {
@@ -101,24 +89,5 @@ public abstract class CellBinder {
         }
     }
 
-    static class ViewHolderFactoryBoundViewBinding<STATE extends CellState, VB extends ViewBinding, VH extends CellViewHolder<STATE, VB>> implements Factory<STATE, VB, VH> {
-        @NonNull
-        private final ViewBindingFactory<VB> viewBindingFactory;
-        @NonNull
-        private final Class<STATE> stateClass;
-        @NonNull
-        private final Factory<STATE, VB, VH> viewHolderFactory;
 
-        ViewHolderFactoryBoundViewBinding(@NonNull Class<STATE> stateClass, @NonNull ViewBindingFactory<VB> viewBindingFactory, @NonNull Factory<STATE, VB, VH> viewHolderFactory) {
-            this.stateClass = stateClass;
-            this.viewBindingFactory = viewBindingFactory;
-            this.viewHolderFactory = viewHolderFactory;
-        }
-
-
-        @Override
-        public VH create(@NonNull VB viewBinding) {
-            return viewHolderFactory.create(viewBinding);
-        }
-    }
 }
