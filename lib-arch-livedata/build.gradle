@@ -46,6 +46,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     api project(path: ':lib-arch')
     api project(path: ':lib-arch-liveevent')
+    implementation "androidx.lifecycle:lifecycle-livedata:latest.release"
+    implementation "androidx.lifecycle:lifecycle-viewmodel:latest.release"
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'

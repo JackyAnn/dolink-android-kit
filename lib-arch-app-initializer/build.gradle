@@ -43,9 +43,9 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    api "androidx.lifecycle:lifecycle-viewmodel:latest.release"
-    api 'androidx.startup:startup-runtime:latest.release'
-    api 'androidx.lifecycle:lifecycle-process:latest.release'
+    implementation "androidx.lifecycle:lifecycle-viewmodel:latest.release"
+    implementation 'androidx.startup:startup-runtime:latest.release'
+    implementation 'androidx.lifecycle:lifecycle-process:latest.release'
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'

@@ -45,8 +45,8 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     api project(path: ':lib-arch-liveevent')
-    api "androidx.lifecycle:lifecycle-livedata:latest.release"
-    api "androidx.lifecycle:lifecycle-viewmodel:latest.release"
+    implementation "androidx.lifecycle:lifecycle-livedata:latest.release"
+    implementation "androidx.lifecycle:lifecycle-viewmodel:latest.release"
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'

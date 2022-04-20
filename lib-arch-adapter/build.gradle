@@ -46,7 +46,7 @@ dependencies {
     api project(path: ':lib-arch-viewbinding')
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    api "androidx.recyclerview:recyclerview:latest.release"
+    implementation "androidx.recyclerview:recyclerview:latest.release"
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'
