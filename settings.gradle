@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "dolink-android-kit"
+rootProject.name = 'dolink-android-kit'
 include ':app'
 
 include ':lib-arch-adapter'
@@ -24,7 +24,6 @@ include ':lib-arch-app-initializer'
 include ':lib-arch-initializer'
 include ':lib-arch-liveevent'
 include ':lib-arch-reflect'
-include ':lib-arch-rxjava2'
 include ':lib-arch-rxjava3'
 include ':lib-arch-viewbinding'
 
