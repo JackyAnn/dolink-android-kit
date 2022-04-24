@@ -1,6 +1,7 @@
 package ltd.dolink.arch.gson;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
@@ -12,24 +13,33 @@ import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 public class OptionalSupport {
-    public static final TypeAdapterFactory OPTIONAL_FACTORY = new TypeAdapterFactory() {
+    private static final TypeAdapterFactory OPTIONAL_SUPPORT_FACTORY = new TypeAdapterFactory() {
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
             Class<? super T> rawType = typeToken.getRawType();
-            if (!Optional.class.isAssignableFrom(rawType)) {
-                return null;
+            if (Optional.class.isAssignableFrom(rawType)) {
+                final Type actualType = containerTypeOf(typeToken.getType());
+                final TypeAdapter<?> adapter = gson.getAdapter(TypeToken.get(actualType));
+                return new OptionalTypeAdapter(adapter);
+            } else if (OptionalInt.class.isAssignableFrom(rawType)) {
+                final TypeAdapter<Integer> adapter = gson.getAdapter(Integer.class);
+                return (TypeAdapter<T>) (new OptionalIntTypeAdapter(adapter));
+            } else if (OptionalLong.class.isAssignableFrom(rawType)) {
+                final TypeAdapter<Long> adapter = gson.getAdapter(Long.class);
+                return (TypeAdapter<T>) (new OptionalLongTypeAdapter(adapter));
+            } else if (OptionalDouble.class.isAssignableFrom(rawType)) {
+                final TypeAdapter<Double> adapter = gson.getAdapter(Double.class);
+                return (TypeAdapter<T>) (new OptionalDoubleTypeAdapter(adapter));
             }
-
-            final Type actualType = containerTypeOf(typeToken.getType());
-            final TypeAdapter<?> adapter = gson.getAdapter(TypeToken.get(actualType));
-            return new OptionalTypeAdapter(adapter);
+            return null;
         }
 
         private Type containerTypeOf(Type type) {
@@ -42,51 +52,29 @@ public class OptionalSupport {
             return Object.class;
         }
     };
-    public static final TypeAdapterFactory OPTIONAL_INT_FACTORY = new TypeAdapterFactory() {
-        @SuppressWarnings({"unchecked"})
-        @Override
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
-            Class<? super T> rawType = typeToken.getRawType();
-            if (!OptionalInt.class.isAssignableFrom(rawType)) {
-                return null;
-            }
 
-            final TypeAdapter<Integer> adapter = gson.getAdapter(Integer.class);
-            return (TypeAdapter<T>) (new OptionalIntTypeAdapter(adapter));
+    public static final GsonBuilder registerTypeAdapter(GsonBuilder builder) {
+        if (Objects.isNull(builder)) {
+            return builder;
         }
-    };
-    public static final TypeAdapterFactory OPTIONAL_LONG_FACTORY = new TypeAdapterFactory() {
-        @SuppressWarnings({"unchecked"})
-        @Override
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
-            Class<? super T> rawType = typeToken.getRawType();
-            if (!OptionalLong.class.isAssignableFrom(rawType)) {
-                return null;
-            }
-
-            final TypeAdapter<Long> adapter = gson.getAdapter(Long.class);
-            return (TypeAdapter<T>) (new OptionalLongTypeAdapter(adapter));
-        }
-    };
-    public static final TypeAdapterFactory OPTIONAL_DOUBLE_FACTORY = new TypeAdapterFactory() {
-        @SuppressWarnings({"unchecked"})
-        @Override
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
-            Class<? super T> rawType = typeToken.getRawType();
-            if (!OptionalDouble.class.isAssignableFrom(rawType)) {
-                return null;
-            }
-
-            final TypeAdapter<Double> adapter = gson.getAdapter(Double.class);
-            return (TypeAdapter<T>) (new OptionalDoubleTypeAdapter(adapter));
-        }
-    };
+        builder.registerTypeAdapterFactory(OPTIONAL_SUPPORT_FACTORY);
+        return builder;
+    }
 
     public static final class OptionalTypeAdapter<T> extends TypeAdapter<Optional<T>> {
         private final TypeAdapter<T> adapter;
 
         public OptionalTypeAdapter(final TypeAdapter<T> adapter) {
             this.adapter = adapter;
+        }
+
+        @Override
+        public void write(JsonWriter out, Optional<T> value) throws IOException {
+            if (value != null && value.isPresent()) {
+                adapter.write(out, value.get());
+            } else {
+                out.nullValue();
+            }
         }
 
         @Override
@@ -98,14 +86,7 @@ public class OptionalSupport {
             return Optional.ofNullable(adapter.read(in));
         }
 
-        @Override
-        public void write(JsonWriter out, Optional<T> value) throws IOException {
-            if (value != null && value.isPresent()) {
-                adapter.write(out, value.get());
-            } else {
-                out.nullValue();
-            }
-        }
+
     }
 
     private static final class OptionalIntTypeAdapter extends TypeAdapter<OptionalInt> {
@@ -113,6 +94,15 @@ public class OptionalSupport {
 
         public OptionalIntTypeAdapter(final TypeAdapter<Integer> adapter) {
             this.adapter = adapter;
+        }
+
+        @Override
+        public void write(JsonWriter out, OptionalInt value) throws IOException {
+            if (value != null && value.isPresent()) {
+                adapter.write(out, value.getAsInt());
+            } else {
+                out.nullValue();
+            }
         }
 
         @Override
@@ -124,14 +114,7 @@ public class OptionalSupport {
             return OptionalInt.of(adapter.read(in));
         }
 
-        @Override
-        public void write(JsonWriter out, OptionalInt value) throws IOException {
-            if (value != null && value.isPresent()) {
-                adapter.write(out, value.getAsInt());
-            } else {
-                out.nullValue();
-            }
-        }
+
     }
 
     private static final class OptionalLongTypeAdapter extends TypeAdapter<OptionalLong> {
@@ -139,6 +122,16 @@ public class OptionalSupport {
 
         public OptionalLongTypeAdapter(final TypeAdapter<Long> adapter) {
             this.adapter = adapter;
+        }
+
+
+        @Override
+        public void write(JsonWriter out, OptionalLong value) throws IOException {
+            if (value != null && value.isPresent()) {
+                adapter.write(out, value.getAsLong());
+            } else {
+                out.nullValue();
+            }
         }
 
         @Override
@@ -150,14 +143,6 @@ public class OptionalSupport {
             return OptionalLong.of(adapter.read(in));
         }
 
-        @Override
-        public void write(JsonWriter out, OptionalLong value) throws IOException {
-            if (value != null && value.isPresent()) {
-                adapter.write(out, value.getAsLong());
-            } else {
-                out.nullValue();
-            }
-        }
     }
 
     private static final class OptionalDoubleTypeAdapter extends TypeAdapter<OptionalDouble> {
@@ -165,6 +150,15 @@ public class OptionalSupport {
 
         public OptionalDoubleTypeAdapter(final TypeAdapter<Double> adapter) {
             this.adapter = adapter;
+        }
+
+        @Override
+        public void write(JsonWriter out, OptionalDouble value) throws IOException {
+            if (value != null && value.isPresent()) {
+                adapter.write(out, value.getAsDouble());
+            } else {
+                out.nullValue();
+            }
         }
 
         @Override
@@ -176,13 +170,6 @@ public class OptionalSupport {
             return OptionalDouble.of(adapter.read(in));
         }
 
-        @Override
-        public void write(JsonWriter out, OptionalDouble value) throws IOException {
-            if (value != null && value.isPresent()) {
-                adapter.write(out, value.getAsDouble());
-            } else {
-                out.nullValue();
-            }
-        }
+
     }
 }

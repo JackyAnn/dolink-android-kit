@@ -39,11 +39,11 @@ dependencies {
     implementation project(path: ':lib-arch')
     implementation project(path: ':lib-arch-adapter')
     implementation project(path: ':lib-arch-app-initializer')
+    implementation project(path: ':lib-arch-gson')
     implementation project(path: ':lib-arch-initializer')
     implementation project(path: ':lib-arch-liveevent')
     implementation project(path: ':lib-arch-rxjava3')
     implementation project(path: ':lib-arch-treenode')
-    implementation project(path: ':lib-arch-viewbinding')
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
 
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
