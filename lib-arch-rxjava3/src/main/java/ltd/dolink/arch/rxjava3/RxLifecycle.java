@@ -1,5 +1,8 @@
 package ltd.dolink.arch.rxjava3;
 
+import android.view.View;
+import android.view.View.OnAttachStateChangeListener;
+
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle.Event;
@@ -35,6 +38,27 @@ public class RxLifecycle<T> implements ObservableTransformer<T, T>, FlowableTran
     public RxLifecycle(@NonNull CompositeDisposable disposable) {
         Objects.requireNonNull(disposable);
         this.disposable = disposable;
+    }
+
+    @MainThread
+    public static <T> RxLifecycle<T> from(@NonNull View view) {
+        Objects.requireNonNull(view);
+
+        CompositeDisposable disposable = new CompositeDisposable();
+        RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
+        view.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                view.removeOnAttachStateChangeListener(this);
+                disposable.dispose();
+            }
+        });
+        return lifecycle;
     }
 
     @MainThread
