@@ -9,11 +9,11 @@ ext {
 }
 apply from: '../publish.gradle'
 android {
-    compileSdk 31
+    compileSdk 32
     namespace 'ltd.dolink.arch'
     defaultConfig {
         minSdk 21
-        targetSdk 31
+        targetSdk 32
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -32,7 +32,6 @@ android {
     }
     buildFeatures {
         buildConfig false
-        dataBinding true
     }
     publishing {
         singleVariant("release") {
@@ -45,7 +44,6 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:latest.release'
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     api project(path: ':lib-arch-liveevent')
-    implementation "androidx.lifecycle:lifecycle-livedata:latest.release"
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'

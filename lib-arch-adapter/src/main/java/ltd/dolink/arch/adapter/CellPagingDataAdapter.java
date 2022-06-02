@@ -1,42 +1,34 @@
 package ltd.dolink.arch.adapter;
 
-
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
+import androidx.paging.PagingDataAdapter;
+import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 
-import java.util.LinkedList;
 import java.util.List;
 
-public class CellAdapter<DATA, VIEW extends CellView<DATA>> extends Adapter<VIEW> {
+import kotlin.coroutines.CoroutineContext;
+
+public class CellPagingDataAdapter<DATA, VIEW extends CellView<DATA>> extends PagingDataAdapter<DATA, VIEW> {
+
     @NonNull
     private final CellViewFactory cellViewFactory;
-    @NonNull
-    private final List<DATA> data = new LinkedList<>();
 
-    public CellAdapter(@NonNull CellViewFactory cellViewFactory) {
+    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher) {
+        super(diffCallback, mainDispatcher);
         this.cellViewFactory = cellViewFactory;
     }
 
-    protected CellAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull List<DATA> data) {
+    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
+        super(diffCallback);
         this.cellViewFactory = cellViewFactory;
-        this.data.addAll(data);
+
     }
 
-
-    @NonNull
-    public List<DATA> getCurrentList() {
-        return data;
-    }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
-    public DATA getItem(int position) {
-        return data.get(position);
+    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher, @NonNull CoroutineContext workerDispatcher) {
+        super(diffCallback, mainDispatcher, workerDispatcher);
+        this.cellViewFactory = cellViewFactory;
     }
 
     @Override

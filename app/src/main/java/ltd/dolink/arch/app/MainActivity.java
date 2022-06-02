@@ -10,89 +10,71 @@ import androidx.lifecycle.Lifecycle.Event;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ltd.dolink.arch.View;
 import ltd.dolink.arch.adapter.CellAdapter;
-import ltd.dolink.arch.adapter.CellBinder;
-import ltd.dolink.arch.adapter.CellBinder.ListCellBinder;
-import ltd.dolink.arch.adapter.CellState;
-import ltd.dolink.arch.adapter.CellViewHolder;
-import ltd.dolink.arch.adapter.CellViewHolder.Factory;
+import ltd.dolink.arch.adapter.CellView;
+import ltd.dolink.arch.adapter.CellViewFactory;
 import ltd.dolink.arch.app.databinding.ActivityMainBinding;
 import ltd.dolink.arch.app.databinding.ItemViewBinding;
-import ltd.dolink.arch.viewbinding.ViewBindingFactory;
 
 
-public class MainActivity extends AppCompatActivity implements View<LifecycleState> {
+public class MainActivity extends AppCompatActivity implements View<LifecycleEvent> {
     private static final String TAG = "MainActivity";
-    private final List<LifecycleState> list = new ArrayList<>();
     private ActivityMainBinding viewBinding;
-    private final CellAdapter cellAdapter = new CellAdapter() {
+    private final CellAdapter<LifecycleEvent, ItemViewHolder> cellAdapter = new CellAdapter(new CellViewFactory() {
         @Override
-        protected CellBinder initializeCellBinder() {
-            return new ListCellBinder(list);
+        public <DATA, VIEW extends CellView<DATA>> VIEW createCellView(@NonNull ViewGroup parent, int cellType) {
+            return (VIEW) new ItemViewHolder(ItemViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         }
-    };
-
+    });
 
     @Override
-    public void setState(@NonNull LifecycleState state) {
-        int count = list.size();
-        list.add(state);
-        cellAdapter.notifyItemRangeInserted(count, list.size() - count);
+    public void setState(@NonNull LifecycleEvent state) {
+        int count = cellAdapter.getItemCount();
+        cellAdapter.getCurrentList().add(state);
+        cellAdapter.notifyItemRangeInserted(count, cellAdapter.getItemCount() - count);
         viewBinding.list.scrollToPosition(cellAdapter.getItemCount() - 1);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ViewBindingFactory.of(ActivityMainBinding.class).inflate(getLayoutInflater());
+        viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
         viewBinding.list.setLayoutManager(new LinearLayoutManager(this));
         viewBinding.list.setAdapter(cellAdapter);
-        cellAdapter.getCellBinder().link(0x0, new Factory<LifecycleState, ItemViewBinding, ItemViewHolder>() {
-            @Override
-            public ItemViewBinding createViewBinding(@NonNull ViewGroup parent) {
-                return ItemViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-            }
-
-            @Override
-            public ItemViewHolder createCellViewHolder(@NonNull ItemViewBinding viewBinding) {
-                return new ItemViewHolder(viewBinding);
-            }
-        });
 
 
         getLifecycle().addObserver((LifecycleEventObserver) (source, event) -> {
-            setState(new LifecycleState(event));
+            setState(new LifecycleEvent(event));
         });
 
 
     }
 
 
-    static class ItemViewHolder extends CellViewHolder<LifecycleState, ItemViewBinding> {
+    static class ItemViewHolder extends CellView<LifecycleEvent> {
+        private final ItemViewBinding viewBinding;
 
         public ItemViewHolder(@NonNull ItemViewBinding viewBinding) {
-            super(viewBinding);
+            super(viewBinding.getRoot());
+            this.viewBinding = viewBinding;
         }
 
         @Override
-        public void setState(@NonNull LifecycleState state) {
-            getViewBinding().text.setText(state.toString());
+        public void setState(@NonNull LifecycleEvent state) {
+            viewBinding.text.setText(state.toString());
         }
     }
 
 }
 
 
-class LifecycleState implements CellState {
+class LifecycleEvent {
     @NonNull
     private final Event event;
 
-    LifecycleState(@NonNull Event event) {
+    LifecycleEvent(@NonNull Event event) {
         this.event = event;
     }
 
@@ -103,14 +85,12 @@ class LifecycleState implements CellState {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("LifecycleState{");
+        final StringBuilder sb = new StringBuilder("LifecycleEvent{");
         sb.append("event=").append(event);
         sb.append('}');
         return sb.toString();
     }
 }
-
-
 
 
 

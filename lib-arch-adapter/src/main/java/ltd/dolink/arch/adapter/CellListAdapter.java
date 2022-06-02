@@ -4,40 +4,27 @@ package ltd.dolink.arch.adapter;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
+import androidx.recyclerview.widget.AsyncDifferConfig;
+import androidx.recyclerview.widget.DiffUtil.ItemCallback;
+import androidx.recyclerview.widget.ListAdapter;
 
-import java.util.LinkedList;
 import java.util.List;
 
-public class CellAdapter<DATA, VIEW extends CellView<DATA>> extends Adapter<VIEW> {
+public class CellListAdapter<DATA, VIEW extends CellView<DATA>> extends ListAdapter<DATA, VIEW> {
+
     @NonNull
     private final CellViewFactory cellViewFactory;
-    @NonNull
-    private final List<DATA> data = new LinkedList<>();
 
-    public CellAdapter(@NonNull CellViewFactory cellViewFactory) {
+    protected CellListAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
+        super(diffCallback);
         this.cellViewFactory = cellViewFactory;
     }
 
-    protected CellAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull List<DATA> data) {
+    protected CellListAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull AsyncDifferConfig<DATA> config) {
+        super(config);
         this.cellViewFactory = cellViewFactory;
-        this.data.addAll(data);
     }
 
-
-    @NonNull
-    public List<DATA> getCurrentList() {
-        return data;
-    }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
-    public DATA getItem(int position) {
-        return data.get(position);
-    }
 
     @Override
     public int getItemViewType(int position) {
