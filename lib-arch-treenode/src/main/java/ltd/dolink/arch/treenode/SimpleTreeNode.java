@@ -12,14 +12,14 @@ public class SimpleTreeNode<T extends Expandable & Selectable> implements TreeNo
     private final int depth;
     @NonNull
     private final T data;
-    private final TreeNode<?> parent;
-    private final List<TreeNode<?>> children;
+    private final TreeNode<T> parent;
+    private final List<TreeNode<T>> children;
 
     public SimpleTreeNode(@IntRange(from = 0) int depth, @NonNull T data, TreeNode<?> parent) {
         Objects.requireNonNull(data);
         this.depth = depth;
         this.data = data;
-        this.parent = parent;
+        this.parent = (TreeNode<T>) parent;
         if (Objects.isNull(parent)) {
             if (depth < 0) {
                 throw new IllegalArgumentException(String.format("depth must >= 0, current dept %s:", depth));
@@ -74,12 +74,12 @@ public class SimpleTreeNode<T extends Expandable & Selectable> implements TreeNo
     }
 
     @Override
-    public TreeNode<?> getParent() {
+    public TreeNode<T> getParent() {
         return parent;
     }
 
     @Override
-    public List<TreeNode<?>> getChildren() {
+    public List<TreeNode<T>> getChildren() {
         return children;
     }
 

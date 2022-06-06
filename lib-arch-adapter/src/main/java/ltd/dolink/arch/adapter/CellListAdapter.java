@@ -13,14 +13,14 @@ import java.util.List;
 public class CellListAdapter<DATA, VIEW extends CellView<DATA>> extends ListAdapter<DATA, VIEW> {
 
     @NonNull
-    private final CellViewFactory cellViewFactory;
+    private final CellViewFactory<DATA> cellViewFactory;
 
-    protected CellListAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
+    protected CellListAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
         super(diffCallback);
         this.cellViewFactory = cellViewFactory;
     }
 
-    protected CellListAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull AsyncDifferConfig<DATA> config) {
+    protected CellListAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull AsyncDifferConfig<DATA> config) {
         super(config);
         this.cellViewFactory = cellViewFactory;
     }

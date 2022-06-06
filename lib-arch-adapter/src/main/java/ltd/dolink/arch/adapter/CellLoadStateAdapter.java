@@ -10,9 +10,9 @@ import java.util.List;
 
 public class CellLoadStateAdapter<VIEW extends CellView<LoadState>> extends LoadStateAdapter<VIEW> {
     @NonNull
-    private final CellViewFactory cellViewFactory;
+    private final CellViewFactory<LoadState> cellViewFactory;
 
-    public CellLoadStateAdapter(@NonNull CellViewFactory cellViewFactory) {
+    public CellLoadStateAdapter(@NonNull CellViewFactory<LoadState> cellViewFactory) {
         this.cellViewFactory = cellViewFactory;
     }
 

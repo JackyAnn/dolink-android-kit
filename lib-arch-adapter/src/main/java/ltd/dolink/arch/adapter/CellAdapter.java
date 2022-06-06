@@ -11,15 +11,15 @@ import java.util.List;
 
 public class CellAdapter<DATA, VIEW extends CellView<DATA>> extends Adapter<VIEW> {
     @NonNull
-    private final CellViewFactory cellViewFactory;
+    private final CellViewFactory<DATA> cellViewFactory;
     @NonNull
     private final List<DATA> data = new LinkedList<>();
 
-    public CellAdapter(@NonNull CellViewFactory cellViewFactory) {
+    public CellAdapter(@NonNull CellViewFactory<DATA> cellViewFactory) {
         this.cellViewFactory = cellViewFactory;
     }
 
-    protected CellAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull List<DATA> data) {
+    protected CellAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull List<DATA> data) {
         this.cellViewFactory = cellViewFactory;
         this.data.addAll(data);
     }

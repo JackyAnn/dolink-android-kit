@@ -5,8 +5,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-public interface CellViewFactory {
-    default int getCellType(Object object) {
+public interface CellViewFactory<DATA> {
+    default int getCellType(DATA data) {
         return 0;
     }
 

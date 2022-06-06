@@ -15,31 +15,31 @@ public interface TreeNode<T> extends Expandable, Selectable {
 
     int getChildCount();
 
-    TreeNode<?> getParent();
+    TreeNode<T> getParent();
 
-    List<TreeNode<?>> getChildren();
+    List<TreeNode<T>> getChildren();
 
     T getData();
 
-    default void expandToList(boolean expand, @NonNull Consumer<List<TreeNode<?>>> action) {
+    default void expandToList(boolean expand, @NonNull Consumer<List<TreeNode<T>>> action) {
         Objects.requireNonNull(action);
-        List<TreeNode<?>> result = new LinkedList<>();
+        List<TreeNode<T>> result = new LinkedList<>();
         expand(expand, child -> result.add(child));
         action.accept(result);
     }
 
-    default void expand(boolean expand, @NonNull Consumer<TreeNode<?>> action) {
+    default void expand(boolean expand, @NonNull Consumer<TreeNode<T>> action) {
         Objects.requireNonNull(action);
         forEach(this, expand, Expandable::isExpanded, action);
     }
 
-    default void forEach(@NonNull TreeNode<?> node, boolean expand, @NonNull Predicate<TreeNode<?>> predicate, @NonNull Consumer<TreeNode<?>> action) {
+    default void forEach(@NonNull TreeNode<T> node, boolean expand, @NonNull Predicate<TreeNode<T>> predicate, @NonNull Consumer<TreeNode<T>> action) {
         Objects.requireNonNull(node);
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(action);
-        List<TreeNode<?>> children = node.getChildren();
+        List<TreeNode<T>> children = node.getChildren();
         if (!children.isEmpty()) {
-            for (TreeNode<?> child : children) {
+            for (TreeNode<T> child : children) {
                 if (expand) {
                     action.accept(child);
                 }

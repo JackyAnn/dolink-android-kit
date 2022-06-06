@@ -13,20 +13,20 @@ import kotlin.coroutines.CoroutineContext;
 public class CellPagingDataAdapter<DATA, VIEW extends CellView<DATA>> extends PagingDataAdapter<DATA, VIEW> {
 
     @NonNull
-    private final CellViewFactory cellViewFactory;
+    private final CellViewFactory<DATA> cellViewFactory;
 
-    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher) {
+    public CellPagingDataAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher) {
         super(diffCallback, mainDispatcher);
         this.cellViewFactory = cellViewFactory;
     }
 
-    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
+    public CellPagingDataAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull ItemCallback<DATA> diffCallback) {
         super(diffCallback);
         this.cellViewFactory = cellViewFactory;
 
     }
 
-    public CellPagingDataAdapter(@NonNull CellViewFactory cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher, @NonNull CoroutineContext workerDispatcher) {
+    public CellPagingDataAdapter(@NonNull CellViewFactory<DATA> cellViewFactory, @NonNull ItemCallback<DATA> diffCallback, @NonNull CoroutineContext mainDispatcher, @NonNull CoroutineContext workerDispatcher) {
         super(diffCallback, mainDispatcher, workerDispatcher);
         this.cellViewFactory = cellViewFactory;
     }
