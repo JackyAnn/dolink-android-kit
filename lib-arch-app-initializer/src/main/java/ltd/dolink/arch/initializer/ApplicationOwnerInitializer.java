@@ -5,7 +5,6 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ProcessLifecycleInitializer;
-import androidx.startup.AppInitializer;
 import androidx.startup.Initializer;
 
 import java.util.Arrays;
@@ -18,12 +17,6 @@ public class ApplicationOwnerInitializer implements Initializer<ApplicationOwner
     public ApplicationOwner create(@NonNull Context context) {
         Application application = (Application) context.getApplicationContext();
         ApplicationOwner applicationOwner = new ApplicationOwner(application);
-        if (application instanceof ApplicationInitializer) {
-            @SuppressWarnings("unchecked") Class<? extends Initializer<Object>> clazz = (Class<? extends Initializer<Object>>) ((ApplicationInitializer) application).initializer();
-            if (!AppInitializer.getInstance(context).isEagerlyInitialized(clazz)) {
-                AppInitializer.getInstance(context).initializeComponent(clazz);
-            }
-        }
         return applicationOwner;
     }
 
