@@ -3,7 +3,6 @@ package ltd.dolink.arch.rxjava3;
 import androidx.annotation.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.exceptions.CompositeException;
 import io.reactivex.rxjava3.exceptions.Exceptions;
@@ -15,19 +14,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AutoDisposableObservable<T> extends Observable<T> {
   @NonNull private final Observable<T> source;
-  @NonNull private final CompositeDisposable disposable;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
   public AutoDisposableObservable(
-      @NonNull Observable<T> source, @NonNull CompositeDisposable disposable) {
+      @NonNull Observable<T> source, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(source);
-    Objects.requireNonNull(disposable);
+    Objects.requireNonNull(listenableCloseable);
     this.source = source;
-    this.disposable = disposable;
+    this.listenableCloseable = listenableCloseable;
   }
 
   @Override
   protected void subscribeActual(Observer<? super T> observer) {
-    source.subscribe(new AutoDisposableObserver<>(observer, disposable));
+    source.subscribe(new AutoDisposableObserver<>(observer, listenableCloseable));
   }
 }
 
@@ -35,24 +34,17 @@ class AutoDisposableObserver<T> extends AtomicReference<Disposable>
     implements Observer<T>, Disposable {
   @NonNull private final Observer<T> sourceObserver;
 
-  AutoDisposableObserver(@NonNull Observer<T> observer, @NonNull CompositeDisposable disposable) {
+  AutoDisposableObserver(
+      @NonNull Observer<T> observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
-    Objects.requireNonNull(disposable);
+    Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    disposable.add(
-        new Disposable() {
-          private final AtomicReference<Disposable> disposableAtomicReference =
-              new AtomicReference<>();
-
+    listenableCloseable.add(
+        new AutoCloseable() {
           @Override
-          public void dispose() {
-            DisposableHelper.dispose(disposableAtomicReference);
+          public void close() {
+            listenableCloseable.remove(this);
             onDispose();
-          }
-
-          @Override
-          public boolean isDisposed() {
-            return DisposableHelper.isDisposed(disposableAtomicReference.get());
           }
         });
   }

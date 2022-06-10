@@ -3,7 +3,6 @@ package ltd.dolink.arch.rxjava3;
 import androidx.annotation.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeObserver;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.exceptions.CompositeException;
 import io.reactivex.rxjava3.exceptions.Exceptions;
@@ -15,18 +14,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class AutoDisposableMaybe<T> extends Maybe<T> {
   @NonNull private final Maybe<T> source;
-  @NonNull private final CompositeDisposable disposable;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
-  public AutoDisposableMaybe(@NonNull Maybe<T> source, @NonNull CompositeDisposable disposable) {
+  public AutoDisposableMaybe(
+      @NonNull Maybe<T> source, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(source);
-    Objects.requireNonNull(disposable);
+    Objects.requireNonNull(listenableCloseable);
     this.source = source;
-    this.disposable = disposable;
+    this.listenableCloseable = listenableCloseable;
   }
 
   @Override
   protected void subscribeActual(MaybeObserver<? super T> observer) {
-    source.subscribe(new AutoDisposableMaybeObserver<>(observer, disposable));
+    source.subscribe(new AutoDisposableMaybeObserver<>(observer, listenableCloseable));
   }
 }
 
@@ -35,24 +35,16 @@ class AutoDisposableMaybeObserver<T> extends AtomicReference<Disposable>
   @NonNull private final MaybeObserver<T> sourceObserver;
 
   AutoDisposableMaybeObserver(
-      @NonNull MaybeObserver<T> observer, @NonNull CompositeDisposable disposable) {
+      @NonNull MaybeObserver<T> observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
-    Objects.requireNonNull(disposable);
+    Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    disposable.add(
-        new Disposable() {
-          private final AtomicReference<Disposable> disposableAtomicReference =
-              new AtomicReference<>();
-
+    listenableCloseable.add(
+        new AutoCloseable() {
           @Override
-          public void dispose() {
-            DisposableHelper.dispose(disposableAtomicReference);
+          public void close() {
+            listenableCloseable.remove(this);
             onDispose();
-          }
-
-          @Override
-          public boolean isDisposed() {
-            return DisposableHelper.isDisposed(disposableAtomicReference.get());
           }
         });
   }

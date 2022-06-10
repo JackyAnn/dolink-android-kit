@@ -20,14 +20,11 @@ import io.reactivex.rxjava3.core.ObservableTransformer;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleSource;
 import io.reactivex.rxjava3.core.SingleTransformer;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.parallel.ParallelFlowable;
 import io.reactivex.rxjava3.parallel.ParallelTransformer;
 import org.reactivestreams.Publisher;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class RxLifecycle<T>
     implements ObservableTransformer<T, T>,
@@ -36,90 +33,65 @@ public class RxLifecycle<T>
         SingleTransformer<T, T>,
         ParallelTransformer<T, T>,
         CompletableTransformer {
-  @NonNull private final CompositeDisposable disposable;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
-  public RxLifecycle(@NonNull CompositeDisposable disposable) {
-    Objects.requireNonNull(disposable);
-    this.disposable = disposable;
+  private RxLifecycle(@NonNull ListenableCloseable listenableCloseable) {
+    Objects.requireNonNull(listenableCloseable);
+    this.listenableCloseable = listenableCloseable;
+  }
+
+  public static <T> RxLifecycle<T> from(@NonNull ListenableFuture<Void> listenableFuture) {
+    Objects.requireNonNull(listenableFuture);
+    ListenableCloseable closeable = new ListenableCloseable();
+    RxLifecycle<T> lifecycle = new RxLifecycle<>(closeable);
+    listenableFuture.addListener(
+        () -> {
+          try {
+            closeable.close();
+          } catch (Exception e) {
+          }
+        },
+        Runnable::run);
+    return lifecycle;
   }
 
   public static <T> RxLifecycle<T> from(@NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(listenableCloseable);
 
-    CompositeDisposable disposable = new CompositeDisposable();
-    RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
+    ListenableCloseable closeable = new ListenableCloseable();
+    RxLifecycle<T> lifecycle = new RxLifecycle<>(closeable);
     listenableCloseable.add(
         new AutoCloseable() {
           @Override
           public void close() {
             listenableCloseable.remove(this);
-            disposable.dispose();
+            try {
+              closeable.close();
+            } catch (Exception e) {
+            }
           }
         });
     return lifecycle;
   }
 
-  public static <T> RxLifecycle<T> from(@NonNull ListenableFuture<Void> listenableFuture) {
-    Objects.requireNonNull(listenableFuture);
-
-    CompositeDisposable disposable = new CompositeDisposable();
-    RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
-    listenableFuture.addListener(disposable::dispose, Runnable::run);
-    return lifecycle;
-  }
-
-  public static class ListenableCloseable implements AutoCloseable {
-    private final Set<AutoCloseable> listeners = new HashSet<>();
-    private volatile boolean closed = false;
-
-    @Override
-    public synchronized void close() throws Exception {
-      closed = true;
-      for (AutoCloseable closeable : listeners) {
-        closeable.close();
-      }
-      listeners.clear();
-    }
-
-    public synchronized void add(@NonNull AutoCloseable closeable) {
-      if (closed) {
-        try {
-          closeable.close();
-        } catch (Exception e) {
-        }
-        return;
-      }
-
-      listeners.add(closeable);
-    }
-
-    public synchronized void remove(@NonNull AutoCloseable closeable) {
-      listeners.remove(closeable);
-    }
-  }
-
   @MainThread
   public static <T> RxLifecycle<T> from(@NonNull LifecycleOwner lifecycleOwner) {
-    return from(lifecycleOwner, Event.ON_DESTROY);
-  }
-
-  @MainThread
-  public static <T> RxLifecycle<T> from(
-      @NonNull LifecycleOwner lifecycleOwner, @NonNull Event event) {
     Objects.requireNonNull(lifecycleOwner);
-    Objects.requireNonNull(event);
 
-    CompositeDisposable disposable = new CompositeDisposable();
-    RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
+    ListenableCloseable closeable = new ListenableCloseable();
+    RxLifecycle<T> lifecycle = new RxLifecycle<>(closeable);
     lifecycleOwner
         .getLifecycle()
         .addObserver(
             new LifecycleEventObserver() {
               @Override
               public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Event current) {
-                if (current.compareTo(event) >= 0) {
+                if (current.compareTo(Event.ON_DESTROY) >= 0) {
                   lifecycleOwner.getLifecycle().removeObserver(this);
-                  disposable.dispose();
+                  try {
+                    closeable.close();
+                  } catch (Exception e) {
+                  }
                 }
               }
             });
@@ -128,31 +100,31 @@ public class RxLifecycle<T>
 
   @Override
   public CompletableSource apply(Completable upstream) {
-    return new AutoDisposableCompletable(upstream, disposable);
+    return new AutoDisposableCompletable(upstream, listenableCloseable);
   }
 
   @Override
   public Publisher<T> apply(Flowable<T> upstream) {
-    return new AutoDisposableFlowable<>(upstream, disposable);
+    return new AutoDisposableFlowable<>(upstream, listenableCloseable);
   }
 
   @Override
   public MaybeSource<T> apply(Maybe<T> upstream) {
-    return new AutoDisposableMaybe<>(upstream, disposable);
+    return new AutoDisposableMaybe<>(upstream, listenableCloseable);
   }
 
   @Override
   public ObservableSource<T> apply(Observable<T> upstream) {
-    return new AutoDisposableObservable<>(upstream, disposable);
+    return new AutoDisposableObservable<>(upstream, listenableCloseable);
   }
 
   @Override
   public SingleSource<T> apply(Single<T> upstream) {
-    return new AutoDisposableSingle<>(upstream, disposable);
+    return new AutoDisposableSingle<>(upstream, listenableCloseable);
   }
 
   @Override
   public ParallelFlowable<T> apply(ParallelFlowable<T> upstream) {
-    return new AutoDisposableParallelFlowable<>(upstream, disposable);
+    return new AutoDisposableParallelFlowable<>(upstream, listenableCloseable);
   }
 }
