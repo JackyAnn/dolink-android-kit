@@ -46,7 +46,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'io.reactivex.rxjava3:rxjava:latest.release'
     implementation 'androidx.lifecycle:lifecycle-common:latest.release'
-    implementation 'com.google.guava:listenablefuture:1.0'
+    implementation 'androidx.concurrent:concurrent-futures:latest.release'
     testImplementation 'junit:junit:latest.release'
     androidTestImplementation 'androidx.test.ext:junit:latest.release'
     androidTestImplementation 'androidx.test.espresso:espresso-core:latest.release'
