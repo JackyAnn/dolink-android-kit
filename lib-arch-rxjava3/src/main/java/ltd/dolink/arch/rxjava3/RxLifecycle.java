@@ -1,12 +1,11 @@
 package ltd.dolink.arch.rxjava3;
 
-import android.view.View;
-import android.view.View.OnAttachStateChangeListener;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle.Event;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.CompletableTransformer;
@@ -26,7 +25,9 @@ import io.reactivex.rxjava3.parallel.ParallelFlowable;
 import io.reactivex.rxjava3.parallel.ParallelTransformer;
 import org.reactivestreams.Publisher;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class RxLifecycle<T>
     implements ObservableTransformer<T, T>,
@@ -42,24 +43,59 @@ public class RxLifecycle<T>
     this.disposable = disposable;
   }
 
-  @MainThread
-  public static <T> RxLifecycle<T> from(@NonNull View view) {
-    Objects.requireNonNull(view);
+  public static <T> RxLifecycle<T> from(@NonNull ListenableCloseable listenableCloseable) {
+    Objects.requireNonNull(listenableCloseable);
 
     CompositeDisposable disposable = new CompositeDisposable();
     RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
-    view.addOnAttachStateChangeListener(
-        new OnAttachStateChangeListener() {
+    listenableCloseable.add(
+        new AutoCloseable() {
           @Override
-          public void onViewAttachedToWindow(View v) {}
-
-          @Override
-          public void onViewDetachedFromWindow(View v) {
-            view.removeOnAttachStateChangeListener(this);
+          public void close() {
+            listenableCloseable.remove(this);
             disposable.dispose();
           }
         });
     return lifecycle;
+  }
+
+  public static <T> RxLifecycle<T> from(@NonNull ListenableFuture<Void> listenableFuture) {
+    Objects.requireNonNull(listenableFuture);
+
+    CompositeDisposable disposable = new CompositeDisposable();
+    RxLifecycle<T> lifecycle = new RxLifecycle<>(disposable);
+    listenableFuture.addListener(disposable::dispose, Runnable::run);
+    return lifecycle;
+  }
+
+  public static class ListenableCloseable implements AutoCloseable {
+    private final Set<AutoCloseable> listeners = new HashSet<>();
+    private volatile boolean closed = false;
+
+    @Override
+    public synchronized void close() throws Exception {
+      closed = true;
+      for (AutoCloseable closeable : listeners) {
+        closeable.close();
+      }
+      listeners.clear();
+    }
+
+    public synchronized void add(@NonNull AutoCloseable closeable) {
+      if (closed) {
+        try {
+          closeable.close();
+        } catch (Exception e) {
+        }
+        return;
+      }
+
+      listeners.add(closeable);
+    }
+
+    public synchronized void remove(@NonNull AutoCloseable closeable) {
+      listeners.remove(closeable);
+    }
   }
 
   @MainThread
