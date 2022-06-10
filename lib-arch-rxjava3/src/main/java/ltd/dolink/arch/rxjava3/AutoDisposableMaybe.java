@@ -33,13 +33,15 @@ public class AutoDisposableMaybe<T> extends Maybe<T> {
 class AutoDisposableMaybeObserver<T> extends AtomicReference<Disposable>
     implements MaybeObserver<T>, Disposable {
   @NonNull private final MaybeObserver<T> sourceObserver;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
   AutoDisposableMaybeObserver(
       @NonNull MaybeObserver<T> observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
     Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    listenableCloseable.add(
+    this.listenableCloseable = listenableCloseable;
+    this.listenableCloseable.add(
         new AutoCloseable() {
           @Override
           public void close() {
@@ -50,7 +52,15 @@ class AutoDisposableMaybeObserver<T> extends AtomicReference<Disposable>
   }
 
   private void onDispose() {
-    dispose();
+    if (!isDisposed()) {
+      dispose();
+    }
+    if (!listenableCloseable.isClosed()) {
+      try {
+        listenableCloseable.close();
+      } catch (Exception e) {
+      }
+    }
   }
 
   @Override

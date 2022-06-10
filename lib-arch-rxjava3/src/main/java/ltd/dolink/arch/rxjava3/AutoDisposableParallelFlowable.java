@@ -46,13 +46,15 @@ public class AutoDisposableParallelFlowable<T> extends ParallelFlowable<T> {
 class AutoDisposableParallelSubscriber<T> extends AtomicReference<Subscription>
     implements Subscriber<T>, Disposable, Subscription {
   @NonNull private final Subscriber<T> sourceObserver;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
   AutoDisposableParallelSubscriber(
       @NonNull Subscriber<T> observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
     Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    listenableCloseable.add(
+    this.listenableCloseable = listenableCloseable;
+    this.listenableCloseable.add(
         new AutoCloseable() {
           @Override
           public void close() {
@@ -63,7 +65,15 @@ class AutoDisposableParallelSubscriber<T> extends AtomicReference<Subscription>
   }
 
   private void onDispose() {
-    dispose();
+    if (!isDisposed()) {
+      dispose();
+    }
+    if (!listenableCloseable.isClosed()) {
+      try {
+        listenableCloseable.close();
+      } catch (Exception e) {
+      }
+    }
   }
 
   @Override

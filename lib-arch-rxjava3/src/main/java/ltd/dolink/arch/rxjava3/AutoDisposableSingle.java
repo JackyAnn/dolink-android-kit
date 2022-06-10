@@ -33,13 +33,15 @@ public class AutoDisposableSingle<T> extends Single<T> {
 class AutoDisposableSingleObserver<T> extends AtomicReference<Disposable>
     implements SingleObserver<T>, Disposable {
   @NonNull private final SingleObserver<T> sourceObserver;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
   AutoDisposableSingleObserver(
       @NonNull SingleObserver<T> observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
     Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    listenableCloseable.add(
+    this.listenableCloseable = listenableCloseable;
+    this.listenableCloseable.add(
         new AutoCloseable() {
           @Override
           public void close() {
@@ -50,7 +52,15 @@ class AutoDisposableSingleObserver<T> extends AtomicReference<Disposable>
   }
 
   private void onDispose() {
-    dispose();
+    if (!isDisposed()) {
+      dispose();
+    }
+    if (!listenableCloseable.isClosed()) {
+      try {
+        listenableCloseable.close();
+      } catch (Exception e) {
+      }
+    }
   }
 
   @Override

@@ -33,13 +33,15 @@ public class AutoDisposableCompletable extends Completable {
 class AutoDisposableCompletableObserver extends AtomicReference<Disposable>
     implements CompletableObserver, Disposable {
   @NonNull private final CompletableObserver sourceObserver;
+  @NonNull private final ListenableCloseable listenableCloseable;
 
   AutoDisposableCompletableObserver(
       @NonNull CompletableObserver observer, @NonNull ListenableCloseable listenableCloseable) {
     Objects.requireNonNull(observer);
     Objects.requireNonNull(listenableCloseable);
     this.sourceObserver = observer;
-    listenableCloseable.add(
+    this.listenableCloseable = listenableCloseable;
+    this.listenableCloseable.add(
         new AutoCloseable() {
           @Override
           public void close() {
@@ -50,7 +52,15 @@ class AutoDisposableCompletableObserver extends AtomicReference<Disposable>
   }
 
   private void onDispose() {
-    dispose();
+    if (!isDisposed()) {
+      dispose();
+    }
+    if (!listenableCloseable.isClosed()) {
+      try {
+        listenableCloseable.close();
+      } catch (Exception e) {
+      }
+    }
   }
 
   @Override

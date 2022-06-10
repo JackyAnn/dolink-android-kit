@@ -9,6 +9,12 @@ public class ListenableCloseable implements AutoCloseable {
   private final Set<AutoCloseable> listeners = new HashSet<>();
   private volatile boolean closed = false;
 
+  public ListenableCloseable() {}
+
+  public ListenableCloseable(boolean closed) {
+    this.closed = closed;
+  }
+
   public synchronized boolean isClosed() {
     return closed;
   }
