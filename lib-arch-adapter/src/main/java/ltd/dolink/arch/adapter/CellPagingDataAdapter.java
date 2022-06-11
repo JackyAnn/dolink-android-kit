@@ -4,7 +4,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.DiffUtil.ItemCallback;
-import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineDispatcher;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class CellPagingDataAdapter<DATA, VIEW extends CellView<DATA>>
   public CellPagingDataAdapter(
       @NonNull CellViewFactory<DATA> cellViewFactory,
       @NonNull ItemCallback<DATA> diffCallback,
-      @NonNull CoroutineContext mainDispatcher) {
+      @NonNull CoroutineDispatcher mainDispatcher) {
     super(diffCallback, mainDispatcher);
     this.cellViewFactory = cellViewFactory;
   }
@@ -30,8 +30,8 @@ public class CellPagingDataAdapter<DATA, VIEW extends CellView<DATA>>
   public CellPagingDataAdapter(
       @NonNull CellViewFactory<DATA> cellViewFactory,
       @NonNull ItemCallback<DATA> diffCallback,
-      @NonNull CoroutineContext mainDispatcher,
-      @NonNull CoroutineContext workerDispatcher) {
+      @NonNull CoroutineDispatcher mainDispatcher,
+      @NonNull CoroutineDispatcher workerDispatcher) {
     super(diffCallback, mainDispatcher, workerDispatcher);
     this.cellViewFactory = cellViewFactory;
   }
